@@ -1,0 +1,11 @@
+build/
+install/
+log/
+backup_old_ws/
+.cache/
+.vscode/
+.DS_Store
+*.pyc
+__pycache__/
+*.bag
+*.db3
