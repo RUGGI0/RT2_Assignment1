@@ -40,6 +40,9 @@ private:
 
   void stop_robot();
   double saturate(double value, double min_value, double max_value) const;
+  double normalize_angle(double angle) const;
+  bool is_position_reached(double distance) const;
+  bool is_angle_reached(double angle_error) const;
 
   rclcpp_action::Server<NavigateToPose>::SharedPtr action_server_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
@@ -48,10 +51,18 @@ private:
   std::mutex odom_mutex_;
   bool odom_received_;
   double current_x_;
+  double current_y_;
+  double current_theta_;
 
   double position_tolerance_;
+  double angle_tolerance_;
+    
   double linear_kp_;
+  double angular_kp_;
+    
   double max_linear_vel_;
+  double max_angular_vel_;
+    
   double control_frequency_;
 };
 

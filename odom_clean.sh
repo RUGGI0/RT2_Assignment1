@@ -3,18 +3,22 @@
 source /opt/ros/jazzy/setup.bash
 source /home/ubuntu/ros2_workshop/install/setup.bash
 
-ros2 topic echo /odom --field pose.pose.position.x | python3 -u -c "
-import sys
+while true; do
+  clear
+  echo "ODOM X POSITION"
+  echo "---------------"
 
-for line in sys.stdin:
-    line = line.strip()
-    if not line or line == '---':
-        continue
-    try:
-        v = float(line)
-        if abs(v) < 1e-6:
-            v = 0.0
-        print(f'{v:.3f}')
-    except ValueError:
-        pass
-"
+  value=$(ros2 topic echo /odom --once --field pose.pose.position.x 2>/dev/null)
+
+  python3 - <<PY
+try:
+    v = float("$value")
+    if abs(v) < 1e-6:
+        v = 0.0
+    print(f"x = {v:.3f}")
+except ValueError:
+    print("Waiting for /odom...")
+PY
+
+  sleep 1
+done

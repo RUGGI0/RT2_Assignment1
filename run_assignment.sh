@@ -16,7 +16,7 @@ pkill -f nav_server_node 2>/dev/null
 #  ├───────────────┼───────────────┤
 #  │ 2 ODOM        │ 3 MONITOR     │
 #  ├───────────────┼───────────────┤
-#  │ 4 GOAL        │ 5 DEBUG       │
+#  │ 4 UI          │ 5 DEBUG       │
 #  └───────────────┴───────────────┘
 ###############################################
 
@@ -66,7 +66,7 @@ tmux select-pane -t "$SESSION":0.0 -T "ROBOT"
 tmux select-pane -t "$SESSION":0.1 -T "SERVER"
 tmux select-pane -t "$SESSION":0.2 -T "ODOM"
 tmux select-pane -t "$SESSION":0.3 -T "MONITOR"
-tmux select-pane -t "$SESSION":0.4 -T "GOAL"
+tmux select-pane -t "$SESSION":0.4 -T "UI"
 tmux select-pane -t "$SESSION":0.5 -T "DEBUG"
 
 ###############################################
@@ -107,12 +107,13 @@ tmux send-keys "source install/setup.bash" C-m
 tmux send-keys "watch -n 1 'ros2 action list; echo; ros2 node list; echo; ros2 topic list | grep odom'" C-m
 
 ###############################################
-# PANE 4 — GOAL
+# PANE 4 — UI
 ###############################################
 tmux select-pane -t "$SESSION":0.4
 tmux send-keys "cd $WORKSPACE" C-m
 tmux send-keys "source /opt/ros/jazzy/setup.bash" C-m
 tmux send-keys "source install/setup.bash" C-m
+tmux send-keys "ros2 run rt2_nav_client nav_ui_node" C-m
 
 ###############################################
 # PANE 5 — DEBUG
@@ -124,7 +125,7 @@ tmux send-keys "source install/setup.bash" C-m
 tmux send-keys "clear" C-m
 
 ###############################################
-# Start on GOAL pane
+# Start on UI pane
 ###############################################
 tmux select-pane -t "$SESSION":0.4
 
