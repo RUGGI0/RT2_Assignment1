@@ -76,7 +76,7 @@ tmux select-pane -t "$SESSION":0.0
 tmux send-keys "cd $WORKSPACE" C-m
 tmux send-keys "source /opt/ros/jazzy/setup.bash" C-m
 tmux send-keys "source install/setup.bash" C-m
-tmux send-keys "(sleep 8 && wmctrl -r 'RViz' -e 0,10000,10000,800,600 && wmctrl -a 'Gazebo Sim') &" C-m
+tmux send-keys "(sleep 7; xdotool search --class rviz2 windowminimize %@; wmctrl -a 'Gazebo Sim' 2>/dev/null) &" C-m
 tmux send-keys "ros2 launch bme_gazebo_sensors spawn_robot.launch.py" C-m
 
 ###############################################

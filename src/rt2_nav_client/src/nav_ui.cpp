@@ -24,7 +24,7 @@ NavUi::NavUi()
   std::cout << "  quit\n";
   std::cout << "      Close the UI node.\n";
 
-  std::cout << "Common Values (Theta in radians):\n";
+  std::cout << "Common Values:\n";
   std::cout << "  0.00   = facing forward\n";
   std::cout << "  +/-1.57   = +/-90 degrees\n";
   std::cout << "  3.14   = 180 degrees\n";
