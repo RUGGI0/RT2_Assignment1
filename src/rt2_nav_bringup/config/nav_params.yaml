@@ -1,0 +1,12 @@
+rt2_nav_server:
+  ros__parameters:
+    position_tolerance: 0.05
+    angle_tolerance: 0.05
+
+    linear_kp: 0.8
+    angular_kp: 1.5
+
+    max_linear_vel: 0.4
+    max_angular_vel: 1.0
+
+    control_frequency: 10.0
