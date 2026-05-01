@@ -5,18 +5,21 @@ WORKSPACE="/home/ubuntu/ros2_workshop"
 
 # Kill previous session if it exists
 tmux kill-session -t "$SESSION" 2>/dev/null
-# kill old servers (avoid duplicates)
+
+# kill old processes to avoid duplicates
 pkill -f nav_server_node 2>/dev/null
+pkill -f nav_ui_node 2>/dev/null
+pkill -f component_container 2>/dev/null
 
 ###############################################
 # Layout 2x3:
 #
 #  ┌───────────────┬───────────────┐
-#  │ 0 ROBOT       │ 1 SERVER      │
+#  │ 0 ROBOT       │ 1 SERVER+UI   │
 #  ├───────────────┼───────────────┤
 #  │ 2 ODOM        │ 3 MONITOR     │
 #  ├───────────────┼───────────────┤
-#  │ 4 UI          │ 5 DEBUG       │
+#  │ 4 COMMAND     │ 5 DEBUG       │
 #  └───────────────┴───────────────┘
 ###############################################
 
@@ -63,10 +66,10 @@ tmux select-layout -t "$SESSION" tiled
 # Set pane titles
 ###############################################
 tmux select-pane -t "$SESSION":0.0 -T "ROBOT"
-tmux select-pane -t "$SESSION":0.1 -T "SERVER"
+tmux select-pane -t "$SESSION":0.1 -T "SERVER+UI"
 tmux select-pane -t "$SESSION":0.2 -T "ODOM"
 tmux select-pane -t "$SESSION":0.3 -T "MONITOR"
-tmux select-pane -t "$SESSION":0.4 -T "UI"
+tmux select-pane -t "$SESSION":0.4 -T "COMMAND"
 tmux select-pane -t "$SESSION":0.5 -T "DEBUG"
 
 ###############################################
@@ -76,17 +79,17 @@ tmux select-pane -t "$SESSION":0.0
 tmux send-keys "cd $WORKSPACE" C-m
 tmux send-keys "source /opt/ros/jazzy/setup.bash" C-m
 tmux send-keys "source install/setup.bash" C-m
-tmux send-keys "(sleep 7; xdotool search --class rviz2 windowminimize %@; wmctrl -a 'Gazebo Sim' 2>/dev/null) &" C-m
+tmux send-keys "(sleep 7; command -v xdotool >/dev/null && xdotool search --class rviz2 windowminimize %@ 2>/dev/null; command -v wmctrl >/dev/null && wmctrl -a 'Gazebo Sim' 2>/dev/null) &" C-m
 tmux send-keys "ros2 launch bme_gazebo_sensors spawn_robot.launch.py" C-m
 
 ###############################################
-# PANE 1 — SERVER
+# PANE 1 — SERVER+UI
 ###############################################
 tmux select-pane -t "$SESSION":0.1
 tmux send-keys "cd $WORKSPACE" C-m
 tmux send-keys "source /opt/ros/jazzy/setup.bash" C-m
 tmux send-keys "source install/setup.bash" C-m
-tmux send-keys "ros2 run rt2_nav_server nav_server_node --ros-args --params-file $WORKSPACE/install/share/rt2_nav_bringup/config/nav_params.yaml" C-m
+tmux send-keys "ros2 launch rt2_nav_bringup nav_components.launch.py" C-m
 
 ###############################################
 # PANE 2 — ODOM
@@ -104,16 +107,22 @@ tmux select-pane -t "$SESSION":0.3
 tmux send-keys "cd $WORKSPACE" C-m
 tmux send-keys "source /opt/ros/jazzy/setup.bash" C-m
 tmux send-keys "source install/setup.bash" C-m
-tmux send-keys "watch -n 1 'ros2 action list; echo; ros2 node list; echo; ros2 topic list | grep odom'" C-m
+tmux send-keys "watch -n 1 'echo ACTIONS; ros2 action list; echo; echo NODES; ros2 node list; echo; echo TOPICS; ros2 topic list | grep -E \"odom|cmd_vel|nav_ui_command\"'" C-m
 
 ###############################################
-# PANE 4 — UI
+# PANE 4 — COMMAND
 ###############################################
 tmux select-pane -t "$SESSION":0.4
 tmux send-keys "cd $WORKSPACE" C-m
 tmux send-keys "source /opt/ros/jazzy/setup.bash" C-m
 tmux send-keys "source install/setup.bash" C-m
-tmux send-keys "ros2 run rt2_nav_client nav_ui_node" C-m
+tmux send-keys "clear" C-m
+tmux send-keys "echo 'COMMAND PANEL'" C-m
+tmux send-keys "echo 'Send a goal with:'" C-m
+tmux send-keys "echo 'ros2 topic pub --once /nav_ui_command std_msgs/msg/String \"{data: '\\''goal 2.0 2.0 1.57'\\''}\"'" C-m
+tmux send-keys "echo ''" C-m
+tmux send-keys "echo 'Cancel with:'" C-m
+tmux send-keys "echo 'ros2 topic pub --once /nav_ui_command std_msgs/msg/String \"{data: '\\''cancel'\\''}\"'" C-m
 
 ###############################################
 # PANE 5 — DEBUG
@@ -125,7 +134,7 @@ tmux send-keys "source install/setup.bash" C-m
 tmux send-keys "clear" C-m
 
 ###############################################
-# Start on UI pane
+# Start on COMMAND pane
 ###############################################
 tmux select-pane -t "$SESSION":0.4
 
