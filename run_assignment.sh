@@ -86,7 +86,7 @@ tmux select-pane -t "$SESSION":0.1
 tmux send-keys "cd $WORKSPACE" C-m
 tmux send-keys "source /opt/ros/jazzy/setup.bash" C-m
 tmux send-keys "source install/setup.bash" C-m
-tmux send-keys "ros2 run rt2_nav_server nav_server_node" C-m
+tmux send-keys "ros2 run rt2_nav_server nav_server_node --ros-args --params-file $WORKSPACE/install/share/rt2_nav_bringup/config/nav_params.yaml" C-m
 
 ###############################################
 # PANE 2 — ODOM
