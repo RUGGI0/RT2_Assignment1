@@ -4,10 +4,11 @@
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
+
+#include "std_msgs/msg/string.hpp"
 
 #include "rt2_nav_interfaces/action/navigate_to_pose.hpp"
 
@@ -20,11 +21,13 @@ public:
   using NavigateToPose = rt2_nav_interfaces::action::NavigateToPose;
   using GoalHandleNavigateToPose = rclcpp_action::ClientGoalHandle<NavigateToPose>;
 
-  NavUi();
+  explicit NavUi(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
   ~NavUi() override;
 
 private:
-  void input_loop();
+
+  void command_callback(const std_msgs::msg::String::SharedPtr msg);
+  void handle_command(const std::string & line); 
 
   void send_goal(double x, double y, double theta);
   void cancel_goal();
@@ -36,9 +39,7 @@ private:
   void result_callback(const GoalHandleNavigateToPose::WrappedResult & result);
 
   rclcpp_action::Client<NavigateToPose>::SharedPtr action_client_;
-
-  std::thread input_thread_;
-  bool running_;
+  rclcpp::Subscription<std_msgs::msg::String>::SharedPtr command_sub_;
 
   std::mutex goal_mutex_;
   GoalHandleNavigateToPose::SharedPtr current_goal_handle_;

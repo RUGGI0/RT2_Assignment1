@@ -17,12 +17,7 @@ find_package(rt2_nav_interfaces REQUIRED)
 
 include_directories(include)
 
-add_executable(nav_server_node
-  src/nav_server.cpp
-  src/nav_server_main.cpp
-)
-
-ament_target_dependencies(nav_server_node
+set(dependencies
   rclcpp
   rclcpp_action
   rclcpp_components
@@ -33,9 +28,51 @@ ament_target_dependencies(nav_server_node
   rt2_nav_interfaces
 )
 
+###############################################
+# Component library
+###############################################
+add_library(nav_server_component SHARED
+  src/nav_server.cpp
+)
+
+ament_target_dependencies(nav_server_component
+  ${dependencies}
+)
+
+rclcpp_components_register_node(nav_server_component
+  PLUGIN "rt2_nav_server::NavServer"
+  EXECUTABLE nav_server_component_exe
+)
+
+###############################################
+# Standalone executable
+###############################################
+add_executable(nav_server_node
+  src/nav_server.cpp
+  src/nav_server_main.cpp
+)
+
+ament_target_dependencies(nav_server_node
+  ${dependencies}
+)
+
+###############################################
+# Install
+###############################################
 install(TARGETS
+  nav_server_component
   nav_server_node
-  DESTINATION lib/${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+
+ament_export_targets(export_nav_server_component)
+install(TARGETS nav_server_component
+  EXPORT export_nav_server_component
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 if(BUILD_TESTING)

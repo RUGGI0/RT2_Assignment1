@@ -22,7 +22,7 @@ public:
   using NavigateToPose = rt2_nav_interfaces::action::NavigateToPose;
   using GoalHandleNavigateToPose = rclcpp_action::ServerGoalHandle<NavigateToPose>;
 
-  NavServer();
+  explicit NavServer(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
 
 private:
   rclcpp_action::GoalResponse handle_goal(

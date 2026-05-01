@@ -3,83 +3,72 @@
 #include <iostream>
 #include <sstream>
 
+#include "rclcpp_components/register_node_macro.hpp"
+
 namespace rt2_nav_client
 {
 
-NavUi::NavUi()
-: Node("rt2_nav_ui"),
-  running_(true)
+NavUi::NavUi(const rclcpp::NodeOptions & options)
+: Node("rt2_nav_ui", options)
 {
   action_client_ = rclcpp_action::create_client<NavigateToPose>(
     this,
     "navigate_to_pose");
-  std::cout << "Commands:\n";
 
-  std::cout << "  goal <x> <y> <theta>\n";
-  std::cout << "      Send a new navigation target.\n";
+  command_sub_ = this->create_subscription<std_msgs::msg::String>(
+    "/nav_ui_command",
+    10,
+    std::bind(&NavUi::command_callback, this, std::placeholders::_1));
 
-  std::cout << "  cancel\n";
-  std::cout << "      Cancel the current active target.\n";
-
-  std::cout << "  quit\n";
-  std::cout << "      Close the UI node.\n";
-
-  std::cout << "Common Values:\n";
-  std::cout << "  0.00   = facing forward\n";
-  std::cout << "  +/-1.57   = +/-90 degrees\n";
-  std::cout << "  3.14   = 180 degrees\n";
-
-  input_thread_ = std::thread(&NavUi::input_loop, this);
+  RCLCPP_INFO(this->get_logger(), "Nav UI component ready.");
+  RCLCPP_INFO(this->get_logger(), "Send commands on topic /nav_ui_command");
+  RCLCPP_INFO(this->get_logger(), "Examples:");
+  RCLCPP_INFO(
+    this->get_logger(),
+    "  ros2 topic pub --once /nav_ui_command std_msgs/msg/String \"{data: 'goal 2.0 2.0 1.57'}\"");
+  RCLCPP_INFO(
+    this->get_logger(),
+    "  ros2 topic pub --once /nav_ui_command std_msgs/msg/String \"{data: 'cancel'}\"");
 }
 
 NavUi::~NavUi()
 {
-  running_ = false;
-
-  if (input_thread_.joinable()) {
-    input_thread_.join();
-  }
 }
 
-void NavUi::input_loop()
+void NavUi::command_callback(const std_msgs::msg::String::SharedPtr msg)
 {
-  std::string line;
+  handle_command(msg->data);
+}
 
-  while (running_ && rclcpp::ok()) {
-    std::cout << "\nrt2_nav> ";
-    std::getline(std::cin, line);
+void NavUi::handle_command(const std::string & line)
+{
+  std::stringstream ss(line);
+  std::string command;
+  ss >> command;
 
-    if (!running_ || !rclcpp::ok()) {
+  if (command == "goal") {
+    double x;
+    double y;
+    double theta;
+
+    if (!(ss >> x >> y >> theta)) {
+      RCLCPP_WARN(this->get_logger(), "Usage: goal x y theta");
       return;
     }
 
-    std::stringstream ss(line);
-    std::string command;
-    ss >> command;
-
-    if (command == "goal") {
-      double x;
-      double y;
-      double theta;
-
-      if (!(ss >> x >> y >> theta)) {
-        RCLCPP_WARN(this->get_logger(), "Usage: goal x y theta");
-        continue;
-      }
-
-      send_goal(x, y, theta);
-    } else if (command == "cancel") {
-      cancel_goal();
-    } else if (command == "quit") {
-      RCLCPP_INFO(this->get_logger(), "Quitting UI.");
-      running_ = false;
-      rclcpp::shutdown();
-      return;
-    } else if (command.empty()) {
-      continue;
-    } else {
-      RCLCPP_WARN(this->get_logger(), "Unknown command. Use: goal x y theta | cancel | quit");
-    }
+    send_goal(x, y, theta);
+  } else if (command == "cancel") {
+    cancel_goal();
+  } else if (command == "quit") {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Quit command ignored in component mode. Stop the launch/container instead.");
+  } else if (command.empty()) {
+    return;
+  } else {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "Unknown command. Use: goal x y theta | cancel");
   }
 }
 
@@ -195,3 +184,5 @@ void NavUi::result_callback(const GoalHandleNavigateToPose::WrappedResult & resu
 }
 
 }  // namespace rt2_nav_client
+
+RCLCPP_COMPONENTS_REGISTER_NODE(rt2_nav_client::NavUi)

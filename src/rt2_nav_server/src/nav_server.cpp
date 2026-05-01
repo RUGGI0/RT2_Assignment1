@@ -5,13 +5,15 @@
 #include <functional>
 #include <utility>
 
+#include "rclcpp_components/register_node_macro.hpp"
+
 using namespace std::chrono_literals;
 
 namespace rt2_nav_server
 
 {
-NavServer::NavServer()
-: Node("rt2_nav_server"),
+NavServer::NavServer(const rclcpp::NodeOptions & options)
+: Node("rt2_nav_server", options),
   odom_received_(false),
   current_x_(0.0),
   current_y_(0.0),
@@ -299,3 +301,5 @@ bool NavServer::is_angle_reached(double angle_error) const
 }
 
 }  // namespace rt2_nav_server
+
+RCLCPP_COMPONENTS_REGISTER_NODE(rt2_nav_server::NavServer)
