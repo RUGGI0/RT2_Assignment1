@@ -2,6 +2,36 @@
 
 This project implements a ROS2 navigation architecture for a differential-drive robot in Gazebo.
 
+---
+
+# Table of Contents
+
+1. [System Architecture](#1-system-architecture)
+2. [Package Structure](#2-package-structure)
+   - [rt2_nav_interfaces](#21-rt2_nav_interfaces)
+   - [rt2_nav_server](#22-rt2_nav_server)
+   - [rt2_nav_client](#23-rt2_nav_client)
+   - [rt2_nav_bringup](#24-rt2_nav_bringup)
+   - [bme_gazebo_sensors](#25-bme_gazebo_sensors)
+3. [Custom Action Interface](#3-custom-action-interface)
+4. [ROS Interfaces](#4-ros-interfaces)
+   - [Action](#41-action)
+   - [Topics](#42-topics)
+5. [Navigation Behaviour](#5-navigation-behaviour)
+6. [Parameters](#6-parameters)
+7. [Components and Container](#7-components-and-container)
+8. [Build Instructions](#8-build-instructions)
+9. [Running the Project Manually](#9-running-the-project-manually)
+10. [Running the Project with Scripts](#10-running-the-project-with-scripts)
+11. [Command Panel](#11-command-panel)
+12. [Useful Debug Commands](#12-useful-debug-commands)
+13. [Standalone Executables](#13-standalone-executables)
+14. [Assignment Requirements Checklist](#14-assignment-requirements-checklist)
+15. [Notes](#15-notes)
+16. [Repository Content](#16-repository-content)
+
+---
+
 The system allows the user to:
 
 - set a target pose `(x, y, theta)`;
