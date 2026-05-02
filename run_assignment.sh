@@ -113,16 +113,7 @@ tmux send-keys "watch -n 1 'echo ACTIONS; ros2 action list; echo; echo NODES; ro
 # PANE 4 — COMMAND
 ###############################################
 tmux select-pane -t "$SESSION":0.4
-tmux send-keys "cd $WORKSPACE" C-m
-tmux send-keys "source /opt/ros/jazzy/setup.bash" C-m
-tmux send-keys "source install/setup.bash" C-m
-tmux send-keys "clear" C-m
-tmux send-keys "echo 'COMMAND PANEL'" C-m
-tmux send-keys "echo 'Send a goal with:'" C-m
-tmux send-keys "echo 'ros2 topic pub --once /nav_ui_command std_msgs/msg/String \"{data: '\\''goal 2.0 2.0 1.57'\\''}\"'" C-m
-tmux send-keys "echo ''" C-m
-tmux send-keys "echo 'Cancel with:'" C-m
-tmux send-keys "echo 'ros2 topic pub --once /nav_ui_command std_msgs/msg/String \"{data: '\\''cancel'\\''}\"'" C-m
+tmux send-keys "/home/ubuntu/ros2_workshop/command_panel.sh" C-m
 
 ###############################################
 # PANE 5 — DEBUG
