@@ -1,79 +1,230 @@
-# RT2 Assignment 1: Component-Based 2D Navigation with ROS2 Actions
+# RT2 Assignment 1 — Component-Based 2D Navigation with ROS2 Actions
 
-This project implements a ROS2 navigation architecture for a differential-drive robot in Gazebo.
+This project implements a **ROS2 C++ navigation system** for a differential-drive robot in Gazebo.
 
----
+The robot can receive a target pose:
 
-# Table of Contents
+```text
+(x, y, theta)
+```
 
-1. [System Architecture](#1-system-architecture)
-2. [Package Structure](#2-package-structure)
-   - [rt2_nav_interfaces](#21-rt2_nav_interfaces)
-   - [rt2_nav_server](#22-rt2_nav_server)
-   - [rt2_nav_client](#23-rt2_nav_client)
-   - [rt2_nav_bringup](#24-rt2_nav_bringup)
-   - [bme_gazebo_sensors](#25-bme_gazebo_sensors)
-3. [Custom Action Interface](#3-custom-action-interface)
-4. [ROS Interfaces](#4-ros-interfaces)
-   - [Action](#41-action)
-   - [Topics](#42-topics)
-5. [Navigation Behaviour](#5-navigation-behaviour)
-6. [Parameters](#6-parameters)
-7. [Components and Container](#7-components-and-container)
-8. [Build Instructions](#8-build-instructions)
-9. [Running the Project Manually](#9-running-the-project-manually)
-10. [Running the Project with Scripts](#10-running-the-project-with-scripts)
-11. [Command Panel](#11-command-panel)
-12. [Useful Debug Commands](#12-useful-debug-commands)
-13. [Standalone Executables](#13-standalone-executables)
-14. [Notes](#15-notes)
+and navigate toward it using:
+
+- a custom ROS2 Action;
+- odometry feedback from `/odom`;
+- velocity commands on `/cmd_vel`;
+- a component-based architecture;
+- a terminal command panel for user interaction.
+
+The final system runs the **action server** and the **UI/action client** as ROS2 components inside the same container.
 
 ---
 
-The system allows the user to:
+## Table of Contents
 
-- set a target pose `(x, y, theta)`;
-- cancel the active target;
-- monitor the robot state through action feedback;
-- run the action server and the UI/action client as ROS2 components loaded in the same container.
-
-The project was developed in **C++** and follows the main concepts covered in the first part of the Research Track 2 course:
-
-- ROS2 Actions;
-- custom action interfaces;
-- action feedback, result, and cancellation;
-- ROS2 Components;
-- component containers;
-- launch files;
-- odometry-based robot control.
+1. [Quick Start](#1-quick-start)
+2. [Script-Based Demo](#2-script-based-demo)
+3. [Command Panel](#3-command-panel)
+4. [System Architecture](#4-system-architecture)
+5. [Packages](#5-packages)
+6. [Custom Action](#6-custom-action)
+7. [Navigation Logic](#7-navigation-logic)
+8. [Components and Container](#8-components-and-container)
+9. [Manual Execution](#9-manual-execution)
+10. [Debug Commands](#10-debug-commands)
+11. [Notes](#11-notes)
 
 ---
 
-# 1. System Architecture
+# 1. Quick Start
 
-The final architecture is based on two main components:
+From the ROS2 workspace root:
 
-1. **NavServer** — action server implementing the robot navigation logic.
-2. **NavUi** — action client/UI component that receives user commands and sends/cancels navigation goals.
+```bash
+cd /home/ubuntu/ros2_workshop
+source /opt/ros/jazzy/setup.bash
+colcon build
+source install/setup.bash
+```
 
-Both components are loaded into the same ROS2 component container.
+Then run the assignment launcher:
+
+```bash
+chmod +x launcher.sh
+chmod +x run_assignment.sh
+chmod +x odom_clean.sh
+chmod +x command_panel.sh
+
+./launcher.sh
+```
+
+Press:
+
+```text
+S
+```
+
+to start the full environment.
+
+---
+
+# 2. Script-Based Demo
+
+The recommended way to run the project is through the provided scripts:
+
+```text
+launcher.sh
+run_assignment.sh
+command_panel.sh
+odom_clean.sh
+```
+
+## 2.1 `launcher.sh`
+
+This is the entry point of the demo.
+
+It opens a small menu:
+
+```text
+S = Start
+R = Restart
+A = Annull
+Q = Quit
+```
+
+When `S` is pressed, it starts `run_assignment.sh` in a new terminal.
+
+## 2.2 `run_assignment.sh`
+
+This script creates a `tmux` 2×3 layout and starts all required processes.
+
+```text
+┌───────────────┬───────────────┐
+│ 0 ROBOT       │ 1 SERVER+UI   │
+├───────────────┼───────────────┤
+│ 2 ODOM        │ 3 MONITOR     │
+├───────────────┼───────────────┤
+│ 4 COMMAND     │ 5 DEBUG       │
+└───────────────┴───────────────┘
+```
+
+| Pane | Name | Purpose |
+|---|---|---|
+| 0 | ROBOT | Starts Gazebo and spawns the robot |
+| 1 | SERVER+UI | Starts the component container with server and UI |
+| 2 | ODOM | Shows a cleaned odometry dashboard |
+| 3 | MONITOR | Shows actions, nodes, and relevant topics |
+| 4 | COMMAND | Allows user commands such as `goal` and `cancel` |
+| 5 | DEBUG | Free terminal for additional checks |
+
+## 2.3 `odom_clean.sh`
+
+This script displays a simplified odometry dashboard instead of raw `/odom` output.
+
+It shows:
+
+```text
+position.x
+position.y
+theta/yaw
+linear.x
+linear.y
+angular.z
+```
+
+This makes the robot state easier to read during the demo.
+
+## 2.4 `command_panel.sh`
+
+This script provides a simple command interface.
+
+Instead of typing a full ROS2 topic command, the user can simply write:
+
+```bash
+goal 2.0 2.0 1.57
+```
+
+or:
+
+```bash
+cancel
+```
+
+The script internally publishes the corresponding command on `/nav_ui_command`.
+
+---
+
+# 3. Command Panel
+
+The `COMMAND` pane is the main user interface during the demo.
+
+## Send a goal
+
+Format:
+
+```bash
+goal <x> <y> <theta>
+```
+
+Example:
+
+```bash
+goal 2.0 2.0 1.57
+```
+
+This sends the robot to:
+
+```text
+x = 2.0
+y = 2.0
+theta = 1.57 rad
+```
+
+## Cancel the active goal
+
+```bash
+cancel
+```
+
+## Exit the command panel
+
+```bash
+exit
+```
+
+or:
+
+```bash
+quit
+```
+
+---
+
+# 4. System Architecture
+
+The final system is based on two ROS2 components:
+
+1. **NavServer** — the action server that controls the robot.
+2. **NavUi** — the action client/UI that receives commands and sends/cancels goals.
+
+Both are loaded into the same component container.
 
 ```text
                            +--------------------------------------+
                            |          rt2_nav_container           |
-                           |      (ROS2 Component Container)      |
+                           |      ROS2 Component Container        |
                            |                                      |
                            |   +------------------------------+   |
                            |   |        rt2_nav_ui            |   |
-                           |   |   (Action Client / UI)       |   |
+                           |   |   Action Client / UI         |   |
                            |   +------------------------------+   |
                            |          ^              |            |
                            |          |              |            |
-                           |  /nav_ui_command        | NavigateToPose goal/cancel
+                           |  /nav_ui_command        | action goal/cancel
                            |          |              v            |
                            |   +------------------------------+   |
                            |   |      rt2_nav_server          |   |
-                           |   |      (Action Server)         |   |
+                           |   |      Action Server           |   |
                            |   +------------------------------+   |
                            +----------|--------------^------------+
                                       |              |
@@ -81,15 +232,12 @@ Both components are loaded into the same ROS2 component container.
                                       v              |
                            +--------------------------------------+
                            |              Gazebo Robot            |
-                           |        bme_gazebo_sensors world      |
                            +--------------------------------------+
 ```
 
 ---
 
-# 2. Package Structure
-
-The project contains the following ROS2 packages:
+# 5. Packages
 
 ```text
 src/
@@ -100,67 +248,62 @@ src/
 └── rt2_nav_server
 ```
 
-## 2.1 `rt2_nav_interfaces`
+## `rt2_nav_interfaces`
 
-Contains the custom action interface:
-
-```text
-rt2_nav_interfaces/action/NavigateToPose.action
-```
-
-The action defines:
-
-- goal pose;
-- result status;
-- feedback about current state and navigation phase.
-
-## 2.2 `rt2_nav_server`
-
-Contains the C++ action server responsible for robot navigation.
-
-It subscribes to `/odom`, publishes `/cmd_vel`, and executes a simple 2D navigation state machine.
-
-The server is available both as:
-
-- standalone executable;
-- ROS2 component/plugin.
-
-## 2.3 `rt2_nav_client`
-
-Contains the C++ UI/action client.
-
-The UI receives user commands through the `/nav_ui_command` topic and sends or cancels action goals accordingly.
-
-The client is available both as:
-
-- standalone executable;
-- ROS2 component/plugin.
-
-## 2.4 `rt2_nav_bringup`
-
-Contains launch and configuration files.
-
-Main files:
-
-```text
-rt2_nav_bringup/launch/nav_components.launch.py
-rt2_nav_bringup/config/nav_params.yaml
-```
-
-## 2.5 `bme_gazebo_sensors`
-
-Gazebo simulation package used to spawn the robot and provide the simulation environment.
-
-The world is configured as a free environment, without obstacles, consistently with the assignment requirement of navigation without obstacle avoidance.
-
----
-
-# 3. Custom Action Interface
-
-The action used by the system is:
+Contains the custom action:
 
 ```text
 NavigateToPose.action
+```
+
+## `rt2_nav_server`
+
+Contains the C++ action server.
+
+It:
+
+- subscribes to `/odom`;
+- publishes `/cmd_vel`;
+- computes the navigation control;
+- publishes feedback;
+- handles goal cancellation;
+- runs both as standalone node and as component.
+
+## `rt2_nav_client`
+
+Contains the C++ UI/action client.
+
+It:
+
+- subscribes to `/nav_ui_command`;
+- parses commands such as `goal <x> <y> <theta>` and `cancel`;
+- sends goals to the action server;
+- receives feedback and final result;
+- runs both as standalone node and as component.
+
+## `rt2_nav_bringup`
+
+Contains:
+
+```text
+launch/nav_components.launch.py
+config/nav_params.yaml
+```
+
+## `bme_gazebo_sensors`
+
+Simulation package used to spawn the robot in Gazebo.
+
+The world is configured as a free environment, consistently with the assignment requirement of navigation without obstacle avoidance.
+
+---
+
+# 6. Custom Action
+
+The system uses a custom action:
+
+```text
+rt2_nav_interfaces/action/NavigateToPose.action
 ```
 
 ```text
@@ -187,7 +330,7 @@ y
 theta
 ```
 
-The desired target pose of the robot.
+Target pose of the robot.
 
 ## Result
 
@@ -196,7 +339,7 @@ success
 message
 ```
 
-Indicates whether the goal was reached, canceled, or aborted.
+Final status of the action.
 
 ## Feedback
 
@@ -209,116 +352,41 @@ heading_error
 phase
 ```
 
-Provides runtime information about the navigation process.
+Runtime information about the navigation process.
 
 ---
 
-# 4. ROS Interfaces
+# 7. Navigation Logic
 
-## 4.1 Action
-
-```text
-/navigate_to_pose
-```
-
-Type:
-
-```text
-rt2_nav_interfaces/action/NavigateToPose
-```
-
-Used by the UI/action client to send target poses and cancel active goals.
-
-## 4.2 Topics
-
-### Subscribed by `rt2_nav_server`
-
-```text
-/odom
-```
-
-Type:
-
-```text
-nav_msgs/msg/Odometry
-```
-
-Used to estimate the current robot position and orientation.
-
-### Published by `rt2_nav_server`
-
-```text
-/cmd_vel
-```
-
-Type:
-
-```text
-geometry_msgs/msg/Twist
-```
-
-Used to command the robot linear and angular velocity.
-
-### Subscribed by `rt2_nav_client`
-
-```text
-/nav_ui_command
-```
-
-Type:
-
-```text
-std_msgs/msg/String
-```
-
-Used as a lightweight user-command interface.
-
-Accepted commands:
-
-```text
-goal <x> <y> <theta>
-cancel
-```
-
----
-
-# 5. Navigation Behaviour
-
-The navigation server implements a simple state machine.
+The navigation server implements a simple 2D state machine:
 
 ```text
 ROTATE_TO_TARGET → MOVE_TO_TARGET → ROTATE_TO_FINAL → SUCCESS
 ```
 
-## 5.1 `ROTATE_TO_TARGET`
+## `ROTATE_TO_TARGET`
 
-The robot first rotates toward the target position.
+The robot rotates toward the target position.
 
-The target heading is computed as:
+The desired heading is computed from:
 
 ```text
 atan2(goal_y - current_y, goal_x - current_x)
 ```
 
-The robot rotates until the heading error is below the angular tolerance.
+## `MOVE_TO_TARGET`
 
-## 5.2 `MOVE_TO_TARGET`
+The robot moves toward the target while correcting its heading.
 
-Once aligned, the robot moves toward the target position.
+The linear and angular velocities are computed with proportional control and saturated using configurable maximum values.
 
-During this phase:
+## `ROTATE_TO_FINAL`
 
-- linear velocity is proportional to the distance from the goal;
-- angular velocity corrects the heading error;
-- both velocities are saturated using configurable maximum values.
+Once the target position is reached, the robot rotates to the desired final orientation `theta`.
 
-## 5.3 `ROTATE_TO_FINAL`
+## Success condition
 
-When the robot reaches the target position, it stops translating and rotates toward the desired final orientation `theta`.
-
-## 5.4 Success
-
-The goal succeeds when both conditions are satisfied:
+The goal succeeds when:
 
 ```text
 distance_error < position_tolerance
@@ -327,55 +395,26 @@ abs(final_angle_error) < angle_tolerance
 
 ---
 
-# 6. Parameters
+# 8. Components and Container
 
-Navigation parameters are defined in:
+Both main nodes are implemented as ROS2 components.
 
-```text
-src/rt2_nav_bringup/config/nav_params.yaml
-```
-
-Current parameters:
-
-```yaml
-rt2_nav_server:
-  ros__parameters:
-    position_tolerance: 0.05
-    angle_tolerance: 0.05
-
-    linear_kp: 0.8
-    angular_kp: 1.5
-
-    max_linear_vel: 0.4
-    max_angular_vel: 1.0
-
-    control_frequency: 10.0
-```
-
-These parameters allow the navigation behaviour to be tuned without changing the source code.
-
----
-
-# 7. Components and Container
-
-Both the navigation server and the UI/action client are implemented as ROS2 components.
-
-The server component is registered as:
+## Server component
 
 ```text
 rt2_nav_server::NavServer
 ```
 
-The UI/action client component is registered as:
+## UI/action client component
 
 ```text
 rt2_nav_client::NavUi
 ```
 
-They are loaded into the same container by:
+They are loaded by:
 
-```text
-rt2_nav_bringup/launch/nav_components.launch.py
+```bash
+ros2 launch rt2_nav_bringup nav_components.launch.py
 ```
 
 The launch file starts:
@@ -384,82 +423,47 @@ The launch file starts:
 rt2_nav_container
 ```
 
-and loads:
+and loads both plugins inside it.
 
-```text
-rt2_nav_server::NavServer
-rt2_nav_client::NavUi
-```
-
-This satisfies the assignment requirement that the action server and the UI/action client run as libraries/plugins within the same container.
+This satisfies the assignment requirement that the UI/action client and the action server are executed as libraries/plugins within the same container.
 
 ---
 
-# 8. Build Instructions
+# 9. Manual Execution
 
-From the ROS2 workspace root:
+The script-based execution is recommended, but the system can also be launched manually.
 
-```bash
-cd /home/ubuntu/ros2_workshop
-source /opt/ros/jazzy/setup.bash
-colcon build
-source install/setup.bash
-```
-
-To build only the assignment packages:
-
-```bash
-cd /home/ubuntu/ros2_workshop
-source /opt/ros/jazzy/setup.bash
-colcon build --packages-select \
-  rt2_nav_interfaces \
-  rt2_nav_server \
-  rt2_nav_client \
-  rt2_nav_bringup \
-  bme_gazebo_sensors
-source install/setup.bash
-```
-
----
-
-# 9. Running the Project Manually
-
-## 9.1 Start Gazebo
-
-Open Terminal 1:
+## Terminal 1 — Gazebo
 
 ```bash
 cd /home/ubuntu/ros2_workshop
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
+
 ros2 launch bme_gazebo_sensors spawn_robot.launch.py
 ```
 
-## 9.2 Start the Component Container
-
-Open Terminal 2:
+## Terminal 2 — Component container
 
 ```bash
 cd /home/ubuntu/ros2_workshop
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
+
 ros2 launch rt2_nav_bringup nav_components.launch.py
 ```
 
-This launch file starts the component container and loads both the navigation server and the UI/action client.
-
-## 9.3 Send a Goal
-
-Open Terminal 3:
+## Terminal 3 — Send a goal
 
 ```bash
 cd /home/ubuntu/ros2_workshop
 source /opt/ros/jazzy/setup.bash
 source install/setup.bash
+
 ros2 topic pub --once /nav_ui_command std_msgs/msg/String "{data: 'goal 2.0 2.0 1.57'}"
 ```
 
-## 9.4 Cancel the Active Goal
+## Cancel
 
 ```bash
 ros2 topic pub --once /nav_ui_command std_msgs/msg/String "{data: 'cancel'}"
@@ -467,104 +471,7 @@ ros2 topic pub --once /nav_ui_command std_msgs/msg/String "{data: 'cancel'}"
 
 ---
 
-# 10. Running the Project with Scripts
-
-Two helper scripts are provided:
-
-```text
-launcher.sh
-run_assignment.sh
-```
-
-The launcher starts a tmux-based 2×3 layout.
-
-```text
-┌───────────────┬───────────────┐
-│ 0 ROBOT       │ 1 SERVER+UI   │
-├───────────────┼───────────────┤
-│ 2 ODOM        │ 3 MONITOR     │
-├───────────────┼───────────────┤
-│ 4 COMMAND     │ 5 DEBUG       │
-└───────────────┴───────────────┘
-```
-
-## 10.1 Start the Launcher
-
-From the workspace root:
-
-```bash
-cd /home/ubuntu/ros2_workshop
-chmod +x launcher.sh
-chmod +x run_assignment.sh
-chmod +x odom_clean.sh
-chmod +x command_panel.sh
-./launcher.sh
-```
-
-Then press:
-
-```text
-S
-```
-
-to start the assignment environment.
-
-## 10.2 Pane Description
-
-| Pane | Name | Function |
-|---|---|---|
-| 0 | ROBOT | Starts Gazebo and spawns the robot |
-| 1 | SERVER+UI | Starts the component container with server and UI |
-| 2 | ODOM | Displays a cleaned odometry dashboard |
-| 3 | MONITOR | Shows actions, nodes, and relevant topics |
-| 4 | COMMAND | User command panel |
-| 5 | DEBUG | Free terminal for debugging |
-
----
-
-# 11. Command Panel
-
-The `COMMAND` pane is managed by:
-
-```text
-command_panel.sh
-```
-
-It allows short commands instead of long `ros2 topic pub` commands.
-
-## 11.1 Send a Goal
-
-```bash
-goal <x> <y> <theta>
-```
-
-Example:
-
-```bash
-goal 2.0 2.0 1.57
-```
-
-## 11.2 Cancel a Goal
-
-```bash
-cancel
-```
-
-## 11.3 Exit the Command Panel
-
-```bash
-exit
-```
-
-or:
-
-```bash
-quit
-```
-
----
-
-# 12. Useful Debug Commands
+# 10. Debug Commands
 
 Check available actions:
 
@@ -572,13 +479,7 @@ Check available actions:
 ros2 action list
 ```
 
-Check action type:
-
-```bash
-ros2 action type /navigate_to_pose
-```
-
-Check action interface:
+Check the action interface:
 
 ```bash
 ros2 interface show rt2_nav_interfaces/action/NavigateToPose
@@ -596,51 +497,34 @@ Check active nodes:
 ros2 node list
 ```
 
-Echo odometry:
+Inspect odometry:
 
 ```bash
 ros2 topic echo /odom
 ```
 
-Echo velocity commands:
+Inspect velocity commands:
 
 ```bash
 ros2 topic echo /cmd_vel
 ```
 
+Inspect UI commands:
+
+```bash
+ros2 topic echo /nav_ui_command
+```
+
 ---
 
-# 13. Standalone Executables
+# 11. Notes
 
-Although the final assignment setup uses components, standalone executables are also provided for testing.
-
-## 13.1 Navigation Server
-
-```bash
-ros2 run rt2_nav_server nav_server_node
-```
-
-## 13.2 Navigation UI
-
-```bash
-ros2 run rt2_nav_client nav_ui_node
-```
-
-The final recommended execution mode remains the component-based launch:
-
-```bash
-ros2 launch rt2_nav_bringup nav_components.launch.py
-```
-
-# 14. Notes
-
-- The navigation logic does not implement obstacle avoidance, consistently with the assignment specification.
-- The robot uses `/odom` to estimate its current pose.
-- The server commands the robot through `/cmd_vel`.
-- The final target orientation is expressed in radians.
-- Example values:
-  - `0.0` means facing forward;
-  - `1.57` approximately corresponds to 90 degrees;
-  - `3.14` approximately corresponds to 180 degrees.
-
-Generated build folders such as `build/`, `install/`, and `log/` are intentionally excluded from the repository.
+- The navigation does not implement obstacle avoidance, as requested by the assignment.
+- The robot pose is estimated from `/odom`.
+- The robot is controlled through `/cmd_vel`.
+- The final orientation `theta` is expressed in radians.
+- Useful angle values:
+  - `0.0` = facing forward;
+  - `1.57` ≈ 90 degrees;
+  - `3.14` ≈ 180 degrees.
+- Generated folders such as `build/`, `install/`, and `log/` are excluded from the repository.
