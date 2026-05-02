@@ -36,6 +36,10 @@ and reaches it through an odometry-based action architecture.
 
 The final system runs the **action server** and the **UI/action client** as dynamically loaded ROS2 components inside the same container.
 
+<p align="center">
+  <img src="README_media/gazebo_navigation.gif" width="750" />
+</p>
+
 ---
 
 ## Table of Contents
@@ -115,6 +119,10 @@ A = Annull
 Q = Quit
 ```
 
+<p align="center">
+  <img src="README_media/launcher_menu.png" width="650" />
+</p>
+
 Press:
 
 ```text
@@ -148,6 +156,10 @@ to start the full assignment environment.
 | 3 | MONITOR | Shows actions, nodes, and relevant topics |
 | 4 | COMMAND | Provides the interactive command interface |
 | 5 | DEBUG | Remains available for manual checks |
+
+<p align="center">
+  <img src="README_media/launcher_demo.gif" width="750" />
+</p>
 
 ## 2.3 What each script does
 
