@@ -138,13 +138,13 @@ to start the full assignment environment.
 ```text
 ┌───────────────────────────────┬───────────────────────────────┐
 │ 0 ROBOT                       │ 1 SERVER+UI                   │
-│ Gazebo + robot spawn          │ Component container            │
+│ Gazebo + robot spawn          │ Component container           │
 ├───────────────────────────────┼───────────────────────────────┤
 │ 2 ODOM                        │ 3 MONITOR                     │
-│ Clean odometry dashboard      │ Actions, nodes, topics         │
+│ Clean odometry dashboard      │ Actions, nodes, topics        │
 ├───────────────────────────────┼───────────────────────────────┤
 │ 4 COMMAND                     │ 5 DEBUG                       │
-│ goal / cancel interface       │ Free terminal                  │
+│ goal / cancel interface       │ Free terminal                 │
 └───────────────────────────────┴───────────────────────────────┘
 ```
 
