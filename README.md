@@ -634,28 +634,7 @@ The final recommended execution mode remains the component-based launch:
 ros2 launch rt2_nav_bringup nav_components.launch.py
 ```
 
----
-
-# 14. Assignment Requirements Checklist
-
-| Requirement | Implementation |
-|---|---|
-| Set target `(x, y, theta)` | `goal <x> <y> <theta>` command |
-| Cancel target | `cancel` command |
-| Action server for navigation | `rt2_nav_server::NavServer` |
-| UI/action client | `rt2_nav_client::NavUi` |
-| Feedback during execution | `NavigateToPose` feedback |
-| Result at completion | `NavigateToPose` result |
-| Cancel handling | action cancel callback + `stop_robot()` |
-| C++ implementation | all main packages are C++ |
-| Components/plugins | server and UI registered with `RCLCPP_COMPONENTS_REGISTER_NODE` |
-| Same container | `rt2_nav_container` |
-| Launch file | `nav_components.launch.py` |
-| GitHub submission | repository link |
-
----
-
-# 15. Notes
+# 14. Notes
 
 - The navigation logic does not implement obstacle avoidance, consistently with the assignment specification.
 - The robot uses `/odom` to estimate its current pose.
@@ -665,26 +644,5 @@ ros2 launch rt2_nav_bringup nav_components.launch.py
   - `0.0` means facing forward;
   - `1.57` approximately corresponds to 90 degrees;
   - `3.14` approximately corresponds to 180 degrees.
-
----
-
-# 16. Repository Content
-
-Expected relevant files:
-
-```text
-.
-├── command_panel.sh
-├── launcher.sh
-├── odom_clean.sh
-├── run_assignment.sh
-├── .gitignore
-└── src
-    ├── bme_gazebo_sensors
-    ├── rt2_nav_bringup
-    ├── rt2_nav_client
-    ├── rt2_nav_interfaces
-    └── rt2_nav_server
-```
 
 Generated build folders such as `build/`, `install/`, and `log/` are intentionally excluded from the repository.
