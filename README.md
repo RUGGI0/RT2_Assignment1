@@ -1,38 +1,58 @@
 # RT2 Assignment 1 — Component-Based 2D Navigation with ROS2 Actions
 
+<p align="center">
+  <b>ROS2 Jazzy · C++ · Actions · Components · Gazebo · tmux demo</b>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/ROS2-Jazzy-blue" />
+  <img src="https://img.shields.io/badge/Language-C++-orange" />
+  <img src="https://img.shields.io/badge/Architecture-Components-green" />
+  <img src="https://img.shields.io/badge/Simulation-Gazebo-lightgrey" />
+</p>
+
+---
+
 This project implements a **ROS2 C++ navigation system** for a differential-drive robot in Gazebo.
 
-The robot can receive a target pose:
+The robot receives a target pose:
 
 ```text
 (x, y, theta)
 ```
 
-and navigate toward it using:
+and reaches it through an odometry-based action architecture.
 
-- a custom ROS2 Action;
-- odometry feedback from `/odom`;
-- velocity commands on `/cmd_vel`;
-- a component-based architecture;
-- a terminal command panel for user interaction.
+| Feature | Implementation |
+|---|---|
+| Target setting | `goal <x> <y> <theta>` |
+| Goal cancellation | `cancel` |
+| Long-running task handling | ROS2 Action |
+| Runtime feedback | Action feedback |
+| Robot state estimation | `/odom` |
+| Robot control | `/cmd_vel` |
+| Deployment model | ROS2 components in one container |
+| Demo interface | tmux launcher + command panel |
 
-The final system runs the **action server** and the **UI/action client** as ROS2 components inside the same container.
+The final system runs the **action server** and the **UI/action client** as dynamically loaded ROS2 components inside the same container.
 
 ---
 
 ## Table of Contents
 
-1. [Quick Start](#1-quick-start)
-2. [(The very cool) Script-Based Demo](#2-the-very-cool-script-based-demo)
-3. [Command Panel](#3-command-panel)
-4. [System Architecture](#4-system-architecture)
-5. [Packages](#5-packages)
-6. [Custom Action](#6-custom-action)
-7. [Navigation Logic](#7-navigation-logic)
-8. [Components and Container](#8-components-and-container)
-9. [Manual (and boring) Execution Demo](#9-manual-and-boring-execution-demo)
-10. [Debug Commands](#10-debug-commands)
-11. [Notes](#11-notes)
+| Section | Description |
+|---|---|
+| [1. Quick Start](#1-quick-start) | Build and launch the project quickly |
+| [2. (The very cool) Script-Based Demo](#2-the-very-cool-script-based-demo) | Recommended execution mode |
+| [3. Command Panel](#3-command-panel) | User commands for goal and cancel |
+| [4. System Architecture](#4-system-architecture) | Components, topics, action, and robot |
+| [5. Packages](#5-packages) | ROS2 package structure |
+| [6. Custom Action](#6-custom-action) | `NavigateToPose.action` definition |
+| [7. Navigation Logic](#7-navigation-logic) | 2D navigation state machine |
+| [8. Components and Container](#8-components-and-container) | Plugin-based execution |
+| [9. Manual (and boring) Execution Demo](#9-manual-and-boring-execution-demo) | Manual launch alternative |
+| [10. Debug Commands](#10-debug-commands) | Useful ROS2 inspection commands |
+| [11. Notes](#11-notes) | Additional implementation notes |
 
 ---
 
@@ -50,11 +70,7 @@ source install/setup.bash
 Then run the assignment launcher:
 
 ```bash
-chmod +x launcher.sh
-chmod +x run_assignment.sh
-chmod +x odom_clean.sh
-chmod +x command_panel.sh
-
+chmod +x launcher.sh run_assignment.sh odom_clean.sh command_panel.sh
 ./launcher.sh
 ```
 
@@ -68,22 +84,28 @@ to start the full environment.
 
 ---
 
-# 2. (The very cool) Script-Based Demo 
+# 2. (The very cool) Script-Based Demo
 
-The recommended way to run the project is through the provided scripts:
+The recommended way to run the assignment is through the provided scripts.
 
 ```text
-launcher.sh
-run_assignment.sh
-command_panel.sh
-odom_clean.sh
+launcher.sh        → opens the assignment menu
+run_assignment.sh  → creates the tmux layout and starts the system
+command_panel.sh   → provides short user commands
+odom_clean.sh      → shows a readable odometry dashboard
 ```
 
-## 2.1 `launcher.sh`
+## 2.1 Start the demo
 
-This is the entry point of the demo.
+From the workspace root:
 
-It opens a small menu:
+```bash
+cd /home/ubuntu/ros2_workshop
+chmod +x launcher.sh run_assignment.sh odom_clean.sh command_panel.sh
+./launcher.sh
+```
+
+The launcher opens a simple menu:
 
 ```text
 S = Start
@@ -92,65 +114,59 @@ A = Annull
 Q = Quit
 ```
 
-When `S` is pressed, it starts `run_assignment.sh` in a new terminal.
-
-## 2.2 `run_assignment.sh`
-
-This script creates a `tmux` 2×3 layout and starts all required processes.
+Press:
 
 ```text
-┌───────────────┬───────────────┐
-│ 0 ROBOT       │ 1 SERVER+UI   │
-├───────────────┼───────────────┤
-│ 2 ODOM        │ 3 MONITOR     │
-├───────────────┼───────────────┤
-│ 4 COMMAND     │ 5 DEBUG       │
-└───────────────┴───────────────┘
+S
 ```
 
-| Pane | Name | Purpose |
+to start the full assignment environment.
+
+## 2.2 Demo layout
+
+`run_assignment.sh` creates a `tmux` 2×3 dashboard.
+
+```text
+┌───────────────────────────────┬───────────────────────────────┐
+│ 0 ROBOT                       │ 1 SERVER+UI                   │
+│ Gazebo + robot spawn          │ Component container            │
+├───────────────────────────────┼───────────────────────────────┤
+│ 2 ODOM                        │ 3 MONITOR                     │
+│ Clean odometry dashboard      │ Actions, nodes, topics         │
+├───────────────────────────────┼───────────────────────────────┤
+│ 4 COMMAND                     │ 5 DEBUG                       │
+│ goal / cancel interface       │ Free terminal                  │
+└───────────────────────────────┴───────────────────────────────┘
+```
+
+| Pane | Name | What it does |
 |---|---|---|
 | 0 | ROBOT | Starts Gazebo and spawns the robot |
-| 1 | SERVER+UI | Starts the component container with server and UI |
-| 2 | ODOM | Shows a cleaned odometry dashboard |
+| 1 | SERVER+UI | Launches the component container with `NavServer` and `NavUi` |
+| 2 | ODOM | Displays a compact odometry dashboard |
 | 3 | MONITOR | Shows actions, nodes, and relevant topics |
-| 4 | COMMAND | Allows user commands such as `goal` and `cancel` |
-| 5 | DEBUG | Free terminal for additional checks |
+| 4 | COMMAND | Provides the interactive command interface |
+| 5 | DEBUG | Remains available for manual checks |
 
-## 2.3 `odom_clean.sh`
+## 2.3 What each script does
 
-This script displays a simplified odometry dashboard instead of raw `/odom` output.
+| Script | Role |
+|---|---|
+| `launcher.sh` | Opens the start/restart/quit menu and starts the demo terminal |
+| `run_assignment.sh` | Creates the tmux layout and launches all runtime processes |
+| `command_panel.sh` | Lets the user type short commands such as `goal <x> <y> <theta>` and `cancel` |
+| `odom_clean.sh` | Converts raw `/odom` into a readable pose/velocity dashboard |
 
-It shows:
+## 2.4 Why the scripts are useful
 
-```text
-position.x
-position.y
-theta/yaw
-linear.x
-linear.y
-angular.z
-```
+Without the scripts, the assignment requires multiple terminals and long ROS2 commands.
 
-This makes the robot state easier to read during the demo.
-
-## 2.4 `command_panel.sh`
-
-This script provides a simple command interface.
-
-Instead of typing a full ROS2 topic command, the user can simply write:
+With the scripts, the demo starts from a single menu and exposes only the relevant controls:
 
 ```bash
 goal 2.0 2.0 1.57
-```
-
-or:
-
-```bash
 cancel
 ```
-
-The script internally publishes the corresponding command on `/nav_ui_command`.
 
 ---
 
@@ -158,44 +174,38 @@ The script internally publishes the corresponding command on `/nav_ui_command`.
 
 The `COMMAND` pane is the main user interface during the demo.
 
-## Send a goal
-
-Format:
+Instead of typing the full ROS2 command:
 
 ```bash
-goal <x> <y> <theta>
+ros2 topic pub --once /nav_ui_command std_msgs/msg/String "{data: 'goal 2.0 2.0 1.57'}"
 ```
 
-Example:
+the user can type:
 
 ```bash
 goal 2.0 2.0 1.57
 ```
 
+## Available commands
+
+| Command | Meaning |
+|---|---|
+| `goal <x> <y> <theta>` | Sends a new navigation target |
+| `cancel` | Cancels the active target |
+| `exit` / `quit` | Closes the command panel |
+
+Example:
+
+```bash
+goal 5.0 5.0 0.0
+```
+
 This sends the robot to:
 
 ```text
-x = 2.0
-y = 2.0
-theta = 1.57 rad
-```
-
-## Cancel the active goal
-
-```bash
-cancel
-```
-
-## Exit the command panel
-
-```bash
-exit
-```
-
-or:
-
-```bash
-quit
+x = 5.0
+y = 5.0
+theta = 0.0 rad
 ```
 
 ---
