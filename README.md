@@ -23,14 +23,14 @@ The final system runs the **action server** and the **UI/action client** as ROS2
 ## Table of Contents
 
 1. [Quick Start](#1-quick-start)
-2. [(The very cool) Script-Based Demo](#2-(the-very-cool)-script-based-demo)
+2. [(The very cool) Script-Based Demo](#2-the-very-cool-script-based-demo)
 3. [Command Panel](#3-command-panel)
 4. [System Architecture](#4-system-architecture)
 5. [Packages](#5-packages)
 6. [Custom Action](#6-custom-action)
 7. [Navigation Logic](#7-navigation-logic)
 8. [Components and Container](#8-components-and-container)
-9. [Manual Execution](#9-manual-execution)
+9. [Manual (and boring) Execution Demo](#9-manual-and-boring-execution-demo)
 10. [Debug Commands](#10-debug-commands)
 11. [Notes](#11-notes)
 
