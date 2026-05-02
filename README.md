@@ -44,6 +44,7 @@ The final system runs the **action server** and the **UI/action client** as dyna
 |---|---|
 | [1. Quick Start](#1-quick-start) | Build and launch the project quickly |
 | [2. (The very cool) Script-Based Demo](#2-the-very-cool-script-based-demo) | Recommended execution mode |
+| [2.5 Script Requirements](#25-script-requirements) | Required utilities for the script-based demo |
 | [3. Command Panel](#3-command-panel) | User commands for goal and cancel |
 | [4. System Architecture](#4-system-architecture) | Components, topics, action, and robot |
 | [5. Packages](#5-packages) | ROS2 package structure |
@@ -167,6 +168,39 @@ With the scripts, the demo starts from a single menu and exposes only the releva
 goal 2.0 2.0 1.57
 cancel
 ```
+
+## 2.5 Script Requirements
+
+The script-based demo relies on a few terminal and window-management utilities.
+
+| Requirement | Used by | Purpose |
+|---|---|---|
+| `tmux` | `run_assignment.sh` | Creates the 2×3 terminal dashboard |
+| `x-terminal-emulator` | `launcher.sh` | Opens the assignment runner in a new terminal |
+| `xdotool` | `run_assignment.sh` | Optionally minimizes RViz after startup |
+| `wmctrl` | `run_assignment.sh` | Optionally focuses the Gazebo window |
+| `bash` | all scripts | Executes the helper scripts |
+
+Install them with:
+
+```bash
+sudo apt update
+sudo apt install -y tmux xdotool wmctrl
+```
+
+Check that `x-terminal-emulator` is available with:
+
+```bash
+which x-terminal-emulator
+```
+
+If it is missing or not configured, run:
+
+```bash
+sudo update-alternatives --config x-terminal-emulator
+```
+
+In the provided Ubuntu MATE / noVNC environment, `x-terminal-emulator` is usually already available.
 
 ---
 
