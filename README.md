@@ -26,9 +26,7 @@ This project implements a ROS2 navigation architecture for a differential-drive 
 11. [Command Panel](#11-command-panel)
 12. [Useful Debug Commands](#12-useful-debug-commands)
 13. [Standalone Executables](#13-standalone-executables)
-14. [Assignment Requirements Checklist](#14-assignment-requirements-checklist)
-15. [Notes](#15-notes)
-16. [Repository Content](#16-repository-content)
+14. [Notes](#15-notes)
 
 ---
 
