@@ -23,7 +23,7 @@ The final system runs the **action server** and the **UI/action client** as ROS2
 ## Table of Contents
 
 1. [Quick Start](#1-quick-start)
-2. [Script-Based Demo](#2-script-based-demo)
+2. [(The very cool) Script-Based Demo](#2-script-based-demo)
 3. [Command Panel](#3-command-panel)
 4. [System Architecture](#4-system-architecture)
 5. [Packages](#5-packages)
@@ -68,7 +68,7 @@ to start the full environment.
 
 ---
 
-# 2. Script-Based Demo
+# 2. (The very cool) Script-Based Demo 
 
 The recommended way to run the project is through the provided scripts:
 
@@ -429,7 +429,7 @@ This satisfies the assignment requirement that the UI/action client and the acti
 
 ---
 
-# 9. Manual Execution
+# 9. Manual (and boring) Execution Demo
 
 The script-based execution is recommended, but the system can also be launched manually.
 
