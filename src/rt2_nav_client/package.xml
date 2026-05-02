@@ -3,9 +3,9 @@
 <package format="3">
   <name>rt2_nav_client</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="ubuntu@todo.todo">ubuntu</maintainer>
-  <license>TODO: License declaration</license>
+  <description>ROS2 action client UI component for sending and canceling navigation goals.</description>
+  <maintainer email="7782369@studenti.unige.it">Edoardo Ruggeri</maintainer>
+  <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
