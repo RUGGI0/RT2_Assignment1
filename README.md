@@ -81,7 +81,7 @@ The main folder to review first is:
 code codes/D4-V2_search_and_rescue_definitive
 ```
 
-The core assignment folder is still included and should be considered the minimum required deliverable:
+The core assignment folder is still included and should be considered the minimum required:
 
 ```bash
 # Open the official Q1/Q2 assignment solution.
@@ -228,7 +228,7 @@ Folder:
 codes/D4-V2_search_and_rescue/
 ```
 
-This folder contains the required Q1 and Q2 deliverable.
+This folder contains the required Q1 and Q2.
 
 ## 5.1 Q1 — Basic PDDL
 
